@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <!-- Basic Page Needs
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta charset="utf-8">
+  <title>Test :)</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!-- Mobile Specific Metas
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- CSS
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="stylesheet" href="/assets/css/normalize.css">
+  <link rel="stylesheet" href="/assets/css/skeleton.css">
+
+  <!-- Favicon
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="icon" type="image/png" href="/assets/images/favicon.png">
+
+  <style>
+    #control-right {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      z-index: 10;
+    }
+
+    #control-left {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+
+
+
+  <!-- Primary Page Layout
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <div class="container">
+    <div class="row">
+      <div class="one-half column" style="margin-top: 25%">
+        <h4>Bomberman</h4>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <canvas id="playing-area" style="width: 100%;"></canvas>
+  </div>
+
+
+  <div id="control-left">
+    <div>
+      <span><img width=48 src="/assets/images/blank.png"></span>
+      <span><img width=48 src="/assets/images/blank.png"></span>
+      <span><img width=48 src="/assets/images/blank.png"></span>
+    </div>
+
+    <div>
+      <span><img width=48 src="/assets/images/blank.png"></span>
+      <span><img id="space" width=48 src="/assets/images/icon_circle.png"></span>
+      <span><img width=48 src="/assets/images/blank.png"></span>
+    </div>
+
+    <div>
+      <span><img width=48 src="/assets/images/blank.png"></span>
+      <span><img width=48 src="/assets/images/blank.png"></span>
+      <span><img width=48 src="/assets/images/blank.png"></span>
+    </div>
+  </div>
+
+  <div id="control-right">
+
+    <div>
+      <span><img width=48 src="/assets/images/blank.png"></span>
+      <span><img id="up" width=48 src="/assets/images/icon_arrow_up.png"></span>
+      <span><img width=48 src="/assets/images/blank.png"></span>
+    </div>
+
+    <div>
+      <span><img id="left" width=48 src="/assets/images/icon_arrow_left.png"></span>
+      <span><img width=48 src="/assets/images/blank.png"></span>
+      <span><img id="right" width=48 src="/assets/images/icon_arrow_right.png"></span>
+    </div>
+
+    <div>
+      <span><img width=48 src="/assets/images/blank.png"></span>
+      <span><img id="down" width=48 src="/assets/images/icon_arrow_down.png"></span>
+      <span><img width=48 src="/assets/images/blank.png"></span>
+    </div>
+
+  </div>
+
+
+
+  <script src="/assets/js/jquery-3.4.1.min.js"></script> 
+
+  <script src="/assets/js/game.js"></script>
+  <script src="/assets/js/communication.js"></script>
+  <script src="/assets/js/bomberman.js"></script>
+
+  <script>
+
+    $(document).ready(function() {
+
+      // Definitions
+      var canvas = document.getElementById("playing-area");
+      var playing_area = new PlayingArea(canvas);
+      var client_id = Date.now()
+
+      var communicator = new Communicator({ 
+          game : "bomberman",
+          game_id : "1111",
+          callback: function(message) {
+            console.log("message",message)
+
+            if(message.type == "position")
+            {
+                playing_area.set_position(message.id,message.x,message.y);
+            }
+            if(message.type == "bomb")
+            {
+                playing_area.set_bomb(message.x,message.y);
+            }
+
+
+          }
+      });
+
+
+
+        
+    
+        playing_area.set_area([
+          "##############################",
+          "#............#...............#",
+          "#............#............#..#",
+          "#............#............#..#",
+          "#.........................#..#",
+          "#################..########.##",
+          "#............#............#..#",
+          "#.........................#..#",
+          "#............#............#..#",
+          "#............#............#..#",
+          "##############################"
+        ])
+
+        playing_area.set_pattern({
+          "player" : new Pattern("/assets/images/assets-ge6132cffe_640.png"),
+          "bomb" : new Pattern("/assets/images/bomb.png")
+        })
+
+      
+      
+        //init
+        communicator.send({ type: "position" , id: client_id, x : 1, y : 1})
+
+
+        var controller = new GameController({ 
+          areas : [ "control-right", "control-left" ],
+          callback: function(cmd) {
+
+              let [x,y] = playing_area.get_position(client_id);
+
+              console.log(cmd,x,y);
+              switch(cmd)
+              {
+                case "up": y -= 1; break;
+                case "down": y += 1; break;
+                case "left": x -= 1; break;
+                case "right": x += 1; break;
+                case "space": 
+                  communicator.send({ type: "bomb" , id: client_id, x : x, y : y})
+                break;
+              }
+
+              if(playing_area.is_possible(x,y))
+              {
+                communicator.send({ type: "position" , id: client_id, x : x, y : y})
+              }
+          }
+        });
+
+
+    
+
+    });
+
+  </script>
+<!-- End Document
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+</body>
+</html>

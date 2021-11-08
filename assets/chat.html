@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <!-- Basic Page Needs
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta charset="utf-8">
+  <title>Test :)</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!-- Mobile Specific Metas
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- CSS
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="stylesheet" href="/assets/css/normalize.css">
+  <link rel="stylesheet" href="/assets/css/skeleton.css">
+
+  <!-- Favicon
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="icon" type="image/png" href="/assets/images/favicon.png">
+
+    </head>
+    <body>
+        <h1>WebSocket Chat</h1>
+        <form id="form" action="">
+            <input type="text" id="messageText" autocomplete="off"/>
+            <button>Send</button>
+        </form>
+        <ul id='messages'>
+        </ul>
+
+        
+     <script src="/assets/js/jquery-3.4.1.min.js"></script> 
+
+
+        <script src="/assets/js/communication.js"></script>
+
+        <script>
+      
+          $(document).ready(function() {
+
+            var client_id = Date.now()
+
+            var communicator = new Communicator({ 
+                game : "chat",
+                game_id : "1111",
+                callback: function(message) {
+                    console.log("message",message)
+                    $("#messages").append("<li>"+message.id+" wrote: "+message.text+"</li>")
+                }
+            });
+
+            $("#form").submit(function(ev) {
+                    var input = $("#messageText")
+                    communicator.send({ id: client_id, text: input.val()})
+                    input.val('')
+                    ev.preventDefault()
+            })
+           
+
+          });
+        </script>
+
+    </body>
+</html>
