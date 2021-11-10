@@ -20,7 +20,11 @@ docker build -t frittenburger/bomberman --build-arg ARCH=amd64 .
 ```
 For Raspberry Pi using ARCH arm32v6
 ```
-docker run -it --rm --name bomberman -p 8066:8066  frittenburger/bomberman
+docker build -t frittenburger/bomberman --build-arg ARCH=arm32v6 .
+```
+Run image
+```
+docker run -it --rm --name bomberman -p 8066:8066 -d frittenburger/bomberman
 ``` 
 
 ## Contributing
@@ -38,7 +42,4 @@ Please make sure to update tests as appropriate.
 
 ## License
 [GNU GPLv3](https://choosealicense.com/licenses/gpl-3.0/)
-
-
-
 
