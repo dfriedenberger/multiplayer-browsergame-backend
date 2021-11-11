@@ -10,6 +10,7 @@ RUN apk add --no-cache gcc \
 RUN pip install --upgrade pip
 RUN pip install fastapi uvicorn aiofiles
 RUN pip install fastapi_websocket_pubsub
+RUN pip install fastapi_utils
 
 WORKDIR /rrot
 COPY server.py server.py

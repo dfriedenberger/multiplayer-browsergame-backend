@@ -86,6 +86,8 @@ function PlayingArea(canvas) {
                 {
                     var p = that.area[y].charAt(x);
                     context.fillStyle= p == "#" ? "#FF0000" : "#00FF00"
+                    if (p == "*")
+                        context.fillStyle="#0000FF"
                     context.fillRect(xoffset + x * icon_size, y * icon_size, icon_size, icon_size);//for red border
                 }
             } 

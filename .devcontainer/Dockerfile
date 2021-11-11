@@ -11,6 +11,7 @@ RUN dpkg-reconfigure -f noninteractive tzdata
 RUN pip install --upgrade pip
 RUN pip install fastapi uvicorn aiofiles
 RUN pip install fastapi_websocket_pubsub
+RUN pip install fastapi_utils
 
 
 

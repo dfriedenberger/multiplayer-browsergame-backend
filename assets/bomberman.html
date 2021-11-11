@@ -122,6 +122,10 @@
           callback: function(message) {
             console.log("message",message)
 
+            if(message.type == "area")
+            {
+              playing_area.set_area(message.area)
+            }
             if(message.type == "position")
             {
                 playing_area.set_position(message.id,message.x,message.y);
@@ -135,24 +139,6 @@
           }
       });
 
-
-
-        
-    
-        playing_area.set_area([
-          "##############################",
-          "#............#...............#",
-          "#............#............#..#",
-          "#............#............#..#",
-          "#.........................#..#",
-          "#################..########.##",
-          "#............#............#..#",
-          "#.........................#..#",
-          "#............#............#..#",
-          "#............#............#..#",
-          "##############################"
-        ])
-
         playing_area.set_pattern({
           "player" : new Pattern("/assets/images/assets-ge6132cffe_640.png"),
           "bomb" : new Pattern("/assets/images/bomb.png")
@@ -161,7 +147,7 @@
       
       
         //init
-        communicator.send({ type: "position" , id: client_id, x : 1, y : 1})
+        communicator.send({ type: "init" , id: client_id })
 
 
         var controller = new GameController({ 

@@ -7,69 +7,97 @@ from fastapi.responses import JSONResponse
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
+from fastapi_utils.tasks import repeat_every
+
+from bomberman import Bomberman
+
+
 app = FastAPI()
 app.add_middleware(GZipMiddleware, minimum_size=500)
 
+
+
 class ConnectionManager:
     def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def broadcast(self, message: str):
+        for connection in self.active_connections:
+            message_str = json.dumps(message)
+            await connection.send_text(message_str)
+
+
+
+
+class Game:
+    def __init__(self,id : str,connection_manager: ConnectionManager,game_handler):
+        self.id = id
+        self.connection_manager = connection_manager
+        self.game_handler = game_handler
+
+    def get_id(self):
+        return self.id
+
+    def get_connection_manager(self):
+        return self.connection_manager
+
+    async def recv(self,request):
+        print("request",request)
+        responses = self.game_handler.handle(request)
+        print("responses",responses)
+        for response in responses:
+            await self.connection_manager.broadcast(response)
+
+
+
+
+class GameManager:
+    def __init__(self):
         self.games = dict()
-    
-    def register(self, game: str , game_id: str):
-        if game not in self.games:
-            self.games[game] = dict()
-        if game_id not in self.games[game]:
-            self.games[game][game_id] = {
-                "active_connections" : []
-            }
-    def unregister(self, game: str , game_id: str):
-        if len(self.games[game][game_id]["active_connections"]) == 0:
-            del self.games[game][game_id]
-        if len(self.games[game].keys()) == 0:
-            del self.games[game]
 
-    async def connect(self, game: str , game_id: str,websocket: WebSocket):
-        print("connect",game,game_id)
-        await websocket.accept()       
-        self.games[game][game_id]["active_connections"].append(websocket)
+    def get_games(self):
+        return self.games.values()
 
-    def disconnect(self, game: str , game_id: str, websocket: WebSocket):
-        print("disconnect",game,game_id)
-        self.games[game][game_id]["active_connections"].remove(websocket)
+    def get_game(self, game_type: str , game_id: str):
+        id = "{0}/{1}".format(game_type,game_id)
+        if id not in self.games:
+            if game_type == "bomberman":
+                self.games[id] = Game(id,ConnectionManager(),Bomberman())
+            else: raise Exception("Unknown Game:"+game_type)
+        return self.games[id]
 
 
+gameManager = GameManager()
 
-
-    async def broadcast(self, game: str , game_id: str, message: str):
-        for connection in self.games[game][game_id]["active_connections"]:
-            await connection.send_text(json.dumps(message))
-
-
-manager = ConnectionManager()
-
+@app.on_event("startup")
+@repeat_every(seconds=1)  # 1 hour
+async def cycle() -> None:
+    #print("cycle",len(gameManager.get_games()))
+    for game in gameManager.get_games():
+        await game.recv({"type" : "cycle" })
 
 @app.get("/")
 async def get_root():
     return RedirectResponse("/assets/bomberman.html")
 
-@app.websocket("/ws/{game}/{game_id}")
-async def websocket_endpoint(websocket: WebSocket, game: str , game_id: str):
-    manager.register(game,game_id)
-    await manager.connect(game,game_id,websocket)
-    client_id = None
+@app.websocket("/ws/{game_name}/{game_id}")
+async def websocket_endpoint(websocket: WebSocket, game_name: str , game_id: str):
+    game = gameManager.get_game(game_name,game_id)
+    await game.get_connection_manager().connect(websocket)
     try:
         while True:
             data_str = await websocket.receive_text()
             data = json.loads(data_str)
-            print("data",data)
-            if "id" in data:
-                client_id = data["id"]
-            #Todo game engine
-            await manager.broadcast(game,game_id,data)
+            await game.recv(data)
     except WebSocketDisconnect:
-        manager.disconnect(game,game_id,websocket)
-        manager.unregister(game,game_id)
-        await manager.broadcast(game,game_id,{"message" : "client left", "client_id" : client_id})
-
+        game.get_connection_manager().disconnect(websocket)
 
 
 @app.get("/api/test", response_class=JSONResponse)
@@ -88,11 +116,5 @@ async def trigger_events():
     # Upon request trigger an event
     pubsubEndpoint.publish(["triggered"])
     return { "state" : "Ok" }
-
-
-
-
-
-
 
 app.mount("/assets", StaticFiles(directory="assets"), name="assets")
