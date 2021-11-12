@@ -12,7 +12,7 @@ RUN pip install fastapi uvicorn aiofiles
 RUN pip install fastapi_websocket_pubsub
 RUN pip install fastapi_utils
 
-WORKDIR /rrot
+WORKDIR /root
 COPY server.py server.py
 COPY assets assets
 COPY data data
