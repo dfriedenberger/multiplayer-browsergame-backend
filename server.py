@@ -77,11 +77,11 @@ class GameManager:
 gameManager = GameManager()
 
 @app.on_event("startup")
-@repeat_every(seconds=1)  # 1 hour
+@repeat_every(seconds=0.5)  # 1 hour
 async def cycle() -> None:
     #print("cycle",len(gameManager.get_games()))
     for game in gameManager.get_games():
-        await game.recv({"type" : "cycle" })
+        await game.recv({"type" : "cycle" ,"cycle" : 500 })
 
 @app.get("/")
 async def get_root():

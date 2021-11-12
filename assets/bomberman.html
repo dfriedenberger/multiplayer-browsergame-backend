@@ -164,7 +164,7 @@
                 case "left": x -= 1; break;
                 case "right": x += 1; break;
                 case "space": 
-                  communicator.send({ type: "bomb" , id: client_id, x : x, y : y})
+                  communicator.send({ type: "bomb" , id: client_id})
                 break;
               }
 

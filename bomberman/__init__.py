@@ -29,6 +29,7 @@ class Bomberman:
         self.state = 0
         self.area = load_area("data/bomberman/level1.txt")
         self.player = dict()
+        self.bombs = []
 
     def handle(self,request):
         responses = []
@@ -47,15 +48,33 @@ class Bomberman:
                 responses.append({"type" : "position" ,"id" : player_id , "x" : value["x"] , "y" : value["y"]})
 
         if request['type'] == "cycle":
-            print("cycle")
+            cycle = request['cycle']
+            field = simplify_area(self.area)
+            explosion = set()
+            for i in range(len(self.bombs)):
+                self.bombs[i]['time'] -= cycle
+                print(self.bombs[i])
+                if self.bombs[i]['time'] <= 0:
+                    explosion.add(i)
+                    
+
+            for i in sorted(explosion,reverse = True):
+                self.bombs.pop(i)
+
 
         if request['type'] == "position":
-            print("position")
-            responses.append(request)
+            player_id = request['id']
+            if player_id in self.player:
+                self.player[player_id]['x'] = request['x']
+                self.player[player_id]['y'] = request['y']
+                value = self.player[player_id]
+                responses.append({"type" : "position" ,"id" : player_id , "x" : value['x'] , "y" : value['y']})
 
         if request['type'] == "bomb":
-            print("bomb")
-            responses.append(request)
-
+            player_id = request['id']
+            if player_id in self.player:
+                value = self.player[player_id]
+                self.bombs.append({"x" : value['x'] , "y" : value['y'],"time" : 2000, "range" : 1})
+                responses.append({"type" : "bomb" ,"id" : player_id , "x" : value['x'] , "y" : value['y']})
 
         return responses
