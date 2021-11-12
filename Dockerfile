@@ -15,6 +15,8 @@ RUN pip install fastapi_utils
 WORKDIR /rrot
 COPY server.py server.py
 COPY assets assets
+COPY data data
+COPY bomberman bomberman
 
 CMD ["uvicorn","server:app","--host","0.0.0.0", "--port","8066"]
 
