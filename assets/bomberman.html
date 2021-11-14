@@ -130,9 +130,13 @@
             {
                 playing_area.set_position(message.id,message.x,message.y);
             }
-            if(message.type == "bomb")
+            if(message.type == "bombs")
             {
-                playing_area.set_bomb(message.x,message.y);
+                playing_area.set_bombs(message.bombs);
+            }
+            if(message.type == "explosion")
+            {
+                playing_area.set_explosion(message.explosion);
             }
 
 

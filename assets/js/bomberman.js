@@ -23,6 +23,7 @@ function PlayingArea(canvas) {
     this.pattern = {};
     this.players = {};
     this.bombs = [];
+    this.explosion = [];
 
     this.set_area = function(area) {
         this.area = area;
@@ -50,11 +51,12 @@ function PlayingArea(canvas) {
         this.players[player] = { x : x , y : y }
     }
 
-    this.set_bomb = function(x,y) {
-        this.bombs.push({
-            x : x,
-            y : y
-        })
+    this.set_bombs = function(bombs) {
+        this.bombs = bombs;
+    }
+
+    this.set_explosion = function(explosion) {
+        this.explosion = explosion;
     }
 
     this.get_position = function(player) {
@@ -106,6 +108,14 @@ function PlayingArea(canvas) {
                 var pattern = that.pattern['player'];
                 pattern.draw(context,xoffset + value.x * icon_size,value.y * icon_size,icon_size);
 
+            }
+
+            var l = that.explosion.length;
+            for(var i = 0;i < l;i++)
+            {
+                var exp = that.explosion[i];
+                context.fillStyle="#FFFF00"
+                context.fillRect(xoffset + exp.x * icon_size, exp.y * icon_size, icon_size, icon_size);//for red border
             }
 
         }
